@@ -8,6 +8,7 @@ The Expense Tracker is a simple command-line application that allows users to ma
 - **List Expenses**: View all recorded expenses in a clear format.
 - **Delete Expenses**: Remove expenses by their unique ID.
 - **Summary**: Get a total of all expenses or filter by month.
+- **Export Expenses** Export the expenses as a csv file for use.
 
 ## Requirements
 - Python 3.x
@@ -25,6 +26,7 @@ To use the Expense Tracker, run the main script from the command line. Here are 
 3. Delete an expense - python expense_tracker.py delete --id 1
 4. Get total expense - python expense_tracker.py summary
 5. Get Total Expenses for a Specific Month - python expense_tracker.py summary --month 8
+6. Export expenses as a CSV file - python expense_tracker.py export_csv
 
 ## Data Storage
 Expenses are stored in a JSON file named expenses.json in the same directory as the script. This file will be created automatically upon adding the first expense.
