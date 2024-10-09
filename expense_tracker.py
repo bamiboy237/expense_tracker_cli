@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import calendar
 import argparse 
+import csv
+from tabulate import tabulate
 
 # Expense class that contains properties of each created expense
 class Expense:
@@ -13,11 +15,12 @@ class Expense:
 
 # Expense tracker to handle updating, deleting and viewing of expenses 
 class ExpenseTracker:
-    def __init__(self, path):
+    def __init__(self, path, csv_path):
         self.expenses = {}
         self.current_id = 1
         self.path = path
         self.load_expenses()
+        self.csv_path = csv_path
 
     def load_expenses(self):
         # Load expenses from the JSON file
@@ -65,10 +68,18 @@ class ExpenseTracker:
 
     def list_expenses(self):
         # List all expenses
-        print("ID  Date       Description  Amount")  # Output header
-        # Iterate through the records and print them
+        # Prepare data for tabulation
+        table_data = []
         for id, details in self.expenses.items():
-            print(f"{id}   {details['Date']}  {details['Expense']:10}  ${details['Amount']}")
+            row_data = []
+            row_data.append(id),
+            row_data.append(details['Expense'])
+            row_data.append(details['Amount'])
+            row_data.append(details['Date'])
+            table_data.append(row_data)
+        # print table data
+        print(tabulate(table_data, headers=['ID', 'EXPENSE', 'AMOUNT', 'DATE'], tablefmt="grid"))
+
 
     def expense_summary(self, month=None):
         total_expense = 0
@@ -81,11 +92,29 @@ class ExpenseTracker:
         else:
             print(f"Your expenses total up to: ${total_expense}")
 
+    def export_csv(self):
+        csv_list = []
+        for id, detail in self.expenses.items():
+            csv_list.append({
+                "ID": id,
+                "Expense": detail["Expense"],
+                "Amount": detail['Amount'],
+                "Date": detail['Date']
+            })
+        with open(self.csv_path, mode='w', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=["ID", "Expense", "Amount", "Date"])
+            writer.writeheader()
+            writer.writerows((csv_list))
+        print("\n File successfully exported as CSV")
+
+        
+
 # Initialize the path for the JSON file
 path = Path('expenses.json')
+csv_path = Path('expenses.csv')
 
 # Initialize an instance of the ExpenseTracker class
-expense_tracker = ExpenseTracker(path)
+expense_tracker = ExpenseTracker(path, csv_path)
 
 def main():
     parser = argparse.ArgumentParser(description='Expense Tracker')
@@ -107,6 +136,9 @@ def main():
     delete_parser = subparsers.add_parser('delete', help='Delete an expense')
     delete_parser.add_argument('--id', type=int, required=True, help='ID of the expense to delete')
 
+    # Export CSV command
+    csv_parser = subparsers.add_parser('export_csv', help='Export expenses as CSV file')
+
     args = parser.parse_args()
 
     if args.command == "add":
@@ -117,6 +149,8 @@ def main():
         print(expense_tracker.delete_expense(args.id))
     elif args.command == "summary":
         expense_tracker.expense_summary(args.month)
+    elif args.command == "export_csv":
+        expense_tracker.export_csv()
     else:
         print("Invalid command.")
 
