@@ -96,7 +96,7 @@ class ExpenseTracker:
         csv_list = []
         for id, detail in self.expenses.items():
             csv_list.append({
-                "ID": id,
+                "ID": detail['id'],
                 "Expense": detail["Expense"],
                 "Amount": detail['Amount'],
                 "Date": detail['Date']
@@ -117,6 +117,7 @@ csv_path = Path('expenses.csv')
 expense_tracker = ExpenseTracker(path, csv_path)
 
 def main():
+    """
     parser = argparse.ArgumentParser(description='Expense Tracker')
     subparsers = parser.add_subparsers(dest='command')
 
@@ -153,6 +154,48 @@ def main():
         expense_tracker.export_csv()
     else:
         print("Invalid command.")
+        """
+
+## Implementing argument parsing using click
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    """ Welcome to the Expense Tracker """
+    
+@cli.command()
+def list():
+    """ List all expenses """
+    expense_tracker.list_expenses()
+    
+@cli.command()
+@click.argument('description')
+@click.argument('amount', type=float)
+def add(description, amount):
+    """ Add an expense to the list with description and amount. """
+    expense_tracker.add_expense(description, amount)
+    click.echo(f'\nAdded expense: {description} with amount: {amount}')
+
+
+@cli.command()
+@click.argument('id', type=int)
+def delete(id):
+    """ Delete an expense based on the id provided """
+    expense_tracker.delete_expense(id)
+    click.echo(f'\nDeleted expense with id: {id}')
+
+@cli.command()
+@click.option('month', type=int, help='Month to provide a summary on')
+def summary(month):
+    """ Give a summary of your expenses """
+    expense_tracker.expense_summary(month)
+
+@cli.command()
+def export_csv():
+    """ Export your expenses as a CSV file """
+    expense_tracker.export_csv()
+    
+    
 
 if __name__ == '__main__':
     main()
